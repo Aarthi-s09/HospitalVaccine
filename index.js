@@ -57,9 +57,18 @@ app.post('/api/vaccinations', async (req, res) => {
 });
 
 app.delete('/api/vaccinations/:id', async (req, res) => {
-  const { id } = req.params;
-  await Vaccination.findByIdAndDelete(id);
-  res.sendStatus(204);
+  try {
+    const { id } = req.params;
+    const result = await Vaccination.findByIdAndDelete(id);
+    if (result) {
+      res.sendStatus(204); // No Content
+    } else {
+      res.sendStatus(404); // Not Found
+    }
+  } catch (error) {
+    console.error('Error deleting vaccination:', error);
+    res.status(500).json({ error: 'An error occurred while deleting the vaccination' });
+  }
 });
 
 const port = process.env.PORT || 5000;
