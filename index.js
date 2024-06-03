@@ -7,16 +7,14 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-// Connect to MongoDB
-const mongoUri = 'mongodb+srv://Aarthis09:Aarthi1234@cluster0.kexotzh.mongodb.net/HospitalAppointment?retryWrites=true&w=majority&appName=Cluster00';
-mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected...'))
-  .catch(err => console.log(err));
+mongoose.connect('mongodb+srv://Aarthis09:Aarthi1234@cluster0.kexotzh.mongodb.net/HospitalAppointment?retryWrites=true&w=majority&appName=Cluster00', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
-// Define a schema and model for vaccination appointments
 const vaccinationSchema = new mongoose.Schema({
   title: String,
-  start: String
+  start: String,
 });
 
 const Vaccination = mongoose.model('Vaccination', vaccinationSchema);
@@ -40,34 +38,31 @@ const vaccineSchedule = [
   { vaccine: 'HPV', schedule: ['18-26'] },
   { vaccine: 'Tdap', schedule: ['18+', 'Every 10 years'] },
   { vaccine: 'Meningococcal', schedule: ['18+', 'College students'] },
-  { vaccine: 'Hepatitis A & B', schedule: ['18+'] },
-  { vaccine: 'MMR', schedule: ['18+', 'Born after 1957'] },
-  { vaccine: 'Varicella', schedule: ['18+', 'No evidence of immunity'] },
+  { vaccine: 'Hepatitis A & B', schedule: ['18+', 'No evidence of immunity'] },
 ];
-
-app.get('/api/vaccinations', async (req, res) => {
-  try {
-    const vaccinations = await Vaccination.find();
-    res.json(vaccinations);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-app.post('/api/vaccinations', async (req, res) => {
-  const newVaccination = new Vaccination(req.body);
-  try {
-    const savedVaccination = await newVaccination.save();
-    res.status(201).json(savedVaccination);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
 
 app.get('/api/vaccine-schedule', (req, res) => {
   res.json(vaccineSchedule);
 });
 
-app.listen(5000, () => {
-  console.log('Server running on port 5000');
+app.get('/api/vaccinations', async (req, res) => {
+  const vaccinations = await Vaccination.find();
+  res.json(vaccinations);
+});
+
+app.post('/api/vaccinations', async (req, res) => {
+  const newVaccination = new Vaccination(req.body);
+  await newVaccination.save();
+  res.json(newVaccination);
+});
+
+app.delete('/api/vaccinations/:id', async (req, res) => {
+  const { id } = req.params;
+  await Vaccination.findByIdAndDelete(id);
+  res.sendStatus(204);
+});
+
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
